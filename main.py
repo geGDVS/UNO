@@ -111,12 +111,35 @@ class HackChat:
         self.sendTo(sender, f'现在牌面上的牌是=={firstCard}==，这是你的牌：{playerCardList[id]}')
         return 0
       if card == '.':
-        firstMan = playerList[nextId]
         addCard = random.choice(cardList)
         playerCardList[id].append(addCard)
         cardList.remove(addCard)
-        self.sendMsg(f'`{sender}`补了一张牌，轮到`{firstMan}`！')
-        self.sendTo(sender, f'你新增了1张牌，这是你现在的牌：{ playerCardList[id]}。')
+        if addCard[0] == firstCard[0] or addCard[1:] == firstCard[1:] or firstCard == '变色':
+          firstCard = addCard
+          if addCard[1:] == '禁':
+            firstMan = playerList[next2Id]
+            self.sendMsg(f'`{sender}`补到了{addCard}并将其打出，`{playerList[nextId]}`跳过1轮，轮到`{firstMan}`！')
+          elif addCard[1:] == '+2':
+            firstMan = playerList[next2Id]
+            for i in range(2):
+              addCard = random.choice(cardList)
+              playerCardList[nextId].append(addCard)
+              cardList.remove(addCard)
+            self.sendMsg(f'`{sender}`补到了=={addCard}==并将其打出，`{playerList[nextId]}`加2张，轮到`{firstMan}`！')
+            self.sendTo(playerList[nextId], f'你新增了2张牌，这是你现在的牌：{playerCardList[nextId]}。')
+          elif addCard[1:] == '转向':
+            playerList.reverse()
+            playerCardList.reverse()
+            firstMan = playerList[(-id)%len(playerList)]
+            id = (-id-1)%len(playerList)
+            self.sendMsg(f'`{sender}`补到了{addCard}并将其打出，==顺序转换==，轮到`{firstMan}`！')
+          else:
+            firstMan = playerList[nextId]
+            self.sendMsg(f'`{sender}`补到了=={addCard}==并将其打出，轮到`{firstMan}`！')
+        else:
+          firstMan = playerList[nextId]
+          self.sendMsg(f'`{sender}`补了一张牌，轮到`{firstMan}`！')
+          self.sendTo(sender, f'你新增了1张牌，这是你现在的牌：{ playerCardList[id]}。')
         return 0
       if card not in playerCardList[id]:
         self.sendMsg('你没有那张牌！')
@@ -164,14 +187,10 @@ class HackChat:
           self.sendMsg(f'`{sender}`出了=={card}==，`{playerList[nextId]}`加2张，轮到`{firstMan}`！')
           self.sendTo(playerList[nextId], f'你新增了2张牌，这是你现在的牌：{playerCardList[nextId]}。')
         elif card[1:] == '转向':
-          newPlayerList = []
-          newPlayerCardList = []
-          for i in range(len(playerList)):
-            newPlayerList.insert(0, playerList[i])
-            newPlayerCardList.insert(0, playerCardList[i])
-          playerList = newPlayerList
-          playerCardList = newPlayerCardList
+          playerList.reverse()
+          playerCardList.reverse()
           firstMan = playerList[(-id)%len(playerList)]
+          id = (-id-1)%len(playerList)
           self.sendMsg(f'`{sender}`出了{card}，==顺序转换==，轮到`{firstMan}`！')
         else:
           firstMan = playerList[nextId]
@@ -187,7 +206,12 @@ class HackChat:
         gameStatus = False
         playerList = []
         playerCardList = [] 
-      
+      if len(cardList) == 0:
+        cardList = initialize_card()
+        for i in playerCardList:
+          for j in i:
+            cardList.remove(j)
+        self.sendMsg('牌没了，已重新洗牌。')
       
   def run(self):
     while True:
@@ -209,5 +233,5 @@ class HackChat:
 
 
 if __name__ == '__main__':
-  chat = HackChat("lounge", "UNO", os.getenv("pswd"))
+  chat = HackChat("lounge", "Mr_UNO", os.getenv("pswd"))
   chat.run()
