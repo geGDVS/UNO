@@ -20,6 +20,15 @@ def initialize_card():
   print(f'已初始化{len(cardList)}张：{cardList}')
   return cardList
 
+
+def no_card(playerCardList, cardList, num):
+  if len(cardList) < num:
+    cardList = initialize_card()
+    for i in playerCardList:
+      for j in i:
+        cardList.remove(j)
+    chat.sendMsg('牌没了，已重新洗牌。')
+  return cardList
   
 class HackChat:
   def __init__(self, channel: str, nick: str, passwd: str):
@@ -112,7 +121,6 @@ class HackChat:
         return 0
       if card == '.':
         addCard = random.choice(cardList)
-        playerCardList[id].append(addCard)
         cardList.remove(addCard)
         if addCard[0] == firstCard[0] or addCard[1:] == firstCard[1:] or firstCard == '变色':
           firstCard = addCard
@@ -121,6 +129,7 @@ class HackChat:
             self.sendMsg(f'`{sender}`补到了{addCard}并将其打出，`{playerList[nextId]}`跳过1轮，轮到`{firstMan}`！')
           elif addCard[1:] == '+2':
             firstMan = playerList[next2Id]
+            cardList = no_card(playerCardList, cardList, 2)
             for i in range(2):
               addCard = random.choice(cardList)
               playerCardList[nextId].append(addCard)
@@ -138,6 +147,7 @@ class HackChat:
             self.sendMsg(f'`{sender}`补到了=={addCard}==并将其打出，轮到`{firstMan}`！')
         else:
           firstMan = playerList[nextId]
+          playerCardList[id].append(addCard)
           self.sendMsg(f'`{sender}`补了一张牌，轮到`{firstMan}`！')
           self.sendTo(sender, f'你新增了1张牌，这是你现在的牌：{ playerCardList[id]}。')
         return 0
@@ -155,6 +165,7 @@ class HackChat:
         if msgList[2] not in '红黄蓝绿':
           self.sendMsg('参数错误！')
           return 0
+        cardList = no_card(playerCardList, cardList, 4)
         firstCard = msgList[2] + '?'
         firstMan = playerList[next2Id]
         for i in range(4):
@@ -180,6 +191,7 @@ class HackChat:
           self.sendMsg(f'`{sender}`出了{card}，`{playerList[nextId]}`跳过1轮，轮到`{firstMan}`！')
         elif card[1:] == '+2':
           firstMan = playerList[next2Id]
+          cardList = no_card(playerCardList, cardList, 2)
           for i in range(2):
             addCard = random.choice(cardList)
             playerCardList[nextId].append(addCard)
@@ -206,12 +218,8 @@ class HackChat:
         gameStatus = False
         playerList = []
         playerCardList = [] 
-      if len(cardList) == 0:
-        cardList = initialize_card()
-        for i in playerCardList:
-          for j in i:
-            cardList.remove(j)
-        self.sendMsg('牌没了，已重新洗牌。')
+        return 0
+      cardList = no_card(playerCardList, cardList, 1)
       
   def run(self):
     while True:
