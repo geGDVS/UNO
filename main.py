@@ -86,8 +86,10 @@ class HackChat:
       else:
         playerList.append(sender)
         self.sendMsg(f'加入成功，现在有{len(playerList)}人。')
-    if msg == '开始u' and not gameStatus:
+    if (msg == '开始u' or len(playerList) == 8) and not gameStatus:
       if len(playerList) >= 2:
+        if len(playerList) == 8:
+          self.sendMsg('人数达到上限，游戏自动开始！')
         gameStatus = True
         cardList = initialize_card()
         for i in range(len(playerList)):
